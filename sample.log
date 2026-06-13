@@ -1,0 +1,20 @@
+2024-06-14 08:01:12 INFO Application started successfully
+2024-06-14 08:02:30 INFO Loading configuration from config.yaml
+2024-06-14 08:03:15 WARNING Configuration file uses deprecated key 'legacy_mode'
+2024-06-14 08:04:00 INFO Database connection established
+2024-06-14 08:05:22 ERROR Failed to connect to redis server at 127.0.0.1:6379
+2024-06-14 08:06:01 WARNING Redis connection retry in 5 seconds
+2024-06-14 08:06:06 INFO Redis connection established on retry
+2024-06-14 08:07:30 ERROR Null pointer exception in module UserService
+2024-06-14 08:08:15 CRITICAL System out of memory, initiating graceful shutdown
+2024-06-14 08:09:00 INFO Shutdown complete
+2024-06-14 08:10:00 DEBUG Checking heartbeat for service A
+2024-06-14 08:10:05 DEBUG Checking heartbeat for service B
+2024-06-14 08:10:10 INFO All services healthy
+2024-06-14 08:11:00 WARNING Disk usage at 85%
+2024-06-14 08:12:00 ERROR Timeout while calling payment gateway API
+2024-06-14 08:13:00 INFO Payment retry scheduled
+2024-06-14 08:14:00 INFO Payment processed successfully
+2024-06-14 08:15:00 WARNING SSL certificate expiring in 7 days
+2024-06-14 08:16:00 ERROR File not found: /data/reports/daily.csv
+2024-06-14 08:17:00 INFO Report generation skipped due to missing data
