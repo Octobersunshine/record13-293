@@ -6,18 +6,29 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-LOG_LEVEL_PATTERN = re.compile(r'\b(ERROR|WARNING|INFO|DEBUG|CRITICAL)\b', re.IGNORECASE)
-
 ALLOWED_LEVELS = {"ERROR", "WARNING", "INFO", "DEBUG", "CRITICAL"}
+
+START_LINE_PREFIX = re.compile(
+    r'^\s*'
+    r'(?:'
+    r'\[?\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}'
+    r'|'
+    r'\[[^\]]+\]'
+    r')'
+)
+
+FIRST_LEVEL_TOKEN = re.compile(r'\b(ERROR|WARNING|INFO|DEBUG|CRITICAL)\b')
 
 
 def parse_log_counts(file_path):
     counts = {level: 0 for level in ALLOWED_LEVELS}
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         for line in f:
-            match = LOG_LEVEL_PATTERN.search(line)
+            if not START_LINE_PREFIX.search(line):
+                continue
+            match = FIRST_LEVEL_TOKEN.search(line)
             if match:
-                level = match.group(1).upper()
+                level = match.group(1)
                 if level in counts:
                     counts[level] += 1
     return counts
@@ -60,4 +71,4 @@ def health():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)

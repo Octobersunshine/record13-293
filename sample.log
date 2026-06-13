@@ -6,6 +6,12 @@
 2024-06-14 08:06:01 WARNING Redis connection retry in 5 seconds
 2024-06-14 08:06:06 INFO Redis connection established on retry
 2024-06-14 08:07:30 ERROR Null pointer exception in module UserService
+    at com.example.user.UserService.getUser(UserService.java:42)
+    at com.example.user.UserController.handleRequest(UserController.java:18)
+    at com.example.web.DispatcherServlet.service(DispatcherServlet.java:99)
+Caused by: java.lang.NullPointerException: userId is null
+    at com.example.user.UserRepository.findById(UserRepository.java:55)
+    ... 3 common frames omitted
 2024-06-14 08:08:15 CRITICAL System out of memory, initiating graceful shutdown
 2024-06-14 08:09:00 INFO Shutdown complete
 2024-06-14 08:10:00 DEBUG Checking heartbeat for service A
@@ -13,8 +19,22 @@
 2024-06-14 08:10:10 INFO All services healthy
 2024-06-14 08:11:00 WARNING Disk usage at 85%
 2024-06-14 08:12:00 ERROR Timeout while calling payment gateway API
+  Traceback (most recent call last):
+    File "payment.py", line 88, in charge
+      response = gateway.post(url, payload, timeout=3)
+    File "gateway.py", line 12, in post
+      raise TimeoutError("request exceeded INFO timeout limit")
+  TimeoutError: request exceeded INFO timeout limit
 2024-06-14 08:13:00 INFO Payment retry scheduled
 2024-06-14 08:14:00 INFO Payment processed successfully
 2024-06-14 08:15:00 WARNING SSL certificate expiring in 7 days
 2024-06-14 08:16:00 ERROR File not found: /data/reports/daily.csv
 2024-06-14 08:17:00 INFO Report generation skipped due to missing data
+2024-06-14 08:18:00 ERROR Order processing failed for order #10086
+Stack trace:
+  Error: ERROR_CODE_INSUFFICIENT_FUNDS
+      at Account.debit (account.js:24)
+      at OrderService.charge (order.js:77)
+  message: "insufficient balance, see INFO dashboard for details"
+2024-06-14 08:19:00 WARNING Order #10086 moved to failed queue
+2024-06-14 08:20:00 INFO Daily job started
