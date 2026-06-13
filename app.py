@@ -1,5 +1,6 @@
 import re
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 from flask import Flask, jsonify, request
@@ -7,6 +8,8 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 ALLOWED_LEVELS = {"ERROR", "WARNING", "INFO", "DEBUG", "CRITICAL"}
+ERROR_LEVELS = {"ERROR", "CRITICAL"}
+TOP_N = 5
 
 START_LINE_PREFIX = re.compile(
     r'^\s*'
@@ -19,19 +22,45 @@ START_LINE_PREFIX = re.compile(
 
 FIRST_LEVEL_TOKEN = re.compile(r'\b(ERROR|WARNING|INFO|DEBUG|CRITICAL)\b')
 
+MESSAGE_NORMALIZE_PATTERNS = [
+    (re.compile(r'\b\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?\s*'), ''),
+    (re.compile(r'\b(?:ERROR|WARNING|INFO|DEBUG|CRITICAL)\b\s*'), ''),
+    (re.compile(r'\[?\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}\]?\s*'), ''),
+]
 
-def parse_log_counts(file_path):
+
+def _normalize_message(text):
+    for pattern, replacement in MESSAGE_NORMALIZE_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text.strip()
+
+
+def parse_log(file_path):
     counts = {level: 0 for level in ALLOWED_LEVELS}
+    error_messages = Counter()
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         for line in f:
             if not START_LINE_PREFIX.search(line):
                 continue
             match = FIRST_LEVEL_TOKEN.search(line)
-            if match:
-                level = match.group(1)
-                if level in counts:
-                    counts[level] += 1
-    return counts
+            if not match:
+                continue
+            level = match.group(1)
+            if level not in counts:
+                continue
+            counts[level] += 1
+            if level in ERROR_LEVELS:
+                end = match.end()
+                message_text = line[end:]
+                message = _normalize_message(message_text)
+                if message:
+                    error_messages[message] += 1
+
+    top_errors = [
+        {"message": msg, "count": cnt}
+        for msg, cnt in error_messages.most_common(TOP_N)
+    ]
+    return counts, top_errors
 
 
 @app.route("/upload", methods=["POST"])
@@ -49,7 +78,7 @@ def upload_log():
         tmp_path = tmp.name
 
     try:
-        counts = parse_log_counts(tmp_path)
+        counts, top_errors = parse_log(tmp_path)
     finally:
         Path(tmp_path).unlink(missing_ok=True)
 
@@ -61,6 +90,7 @@ def upload_log():
         "DEBUG": counts["DEBUG"],
         "CRITICAL": counts["CRITICAL"],
         "total": sum(counts.values()),
+        "top_errors": top_errors,
     }
     return jsonify(result), 200
 
